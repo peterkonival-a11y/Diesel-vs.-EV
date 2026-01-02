@@ -79,7 +79,7 @@ const sumDieselEl = document.getElementById("sumDiesel");
 const sumEVEl = document.getElementById("sumEV");
 const sumDiffEl = document.getElementById("sumDiff");
 
-// Predvyplní dnešnım d?om
+// PredvyplnÃ­ dneÅ¡nÃ½m d?om
 function setToday() {
   dateInput.value = new Date().toISOString().slice(0, 10);
 }
@@ -141,12 +141,12 @@ function addTrip() {
   trips.push({ date, km, diesel: dieselCost, ev: evCost });
 
   kmInput.value = "";
-  setToday(); // reset datum na dnešnı de?
+  setToday(); // reset datum na dneÅ¡nÃ½ de?
   render();
 }
 
 function resetTrips() {
-  if (!confirm("Naozaj chceš vymaza? všetky jazdy?")) return;
+  if (!confirm("Naozaj chceÅ¡ vymaza? vÅ¡etky jazdy?")) return;
   trips = [];
   render();
 }
@@ -156,7 +156,7 @@ function deleteSelected() {
   const indexes = Array.from(checkboxes).map(cb => Number(cb.dataset.index));
 
   if(indexes.length === 0) {
-    alert("Nie je ozna?ená iadna jazda.");
+    alert("Nie je ozna?enÃ¡ Å¾iadna jazda.");
     return;
   }
 
