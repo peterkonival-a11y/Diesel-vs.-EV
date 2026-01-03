@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Diesel vs EV – FIAC kalkula?ka</title>
+
+<!-- ===== PWA ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b4da2">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EV vs Diesel">
+<!-- ===== /PWA ===== -->
+
+<style>
+:root {
+  --blue: #0b4da2;
+  --yellow: #f1c40f;
+  --green: #27ae60;
+  --black: #111;
+  --bg: #f5f7fa;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 12px;
+  background: var(--bg);
+  color: var(--black);
+}
+
+h2 {
+  color: var(--blue);
+  text-align: center;
+}
+
+.card {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border-left: 6px solid var(--blue);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+}
+
+.btn-primary { background: var(--yellow); color: black; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-export { background: var(--blue); color: white; }
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 12px;
+  background: white;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: right;
+  font-size: 14px;
+}
+
+th { background: var(--blue); color: white; }
+td.checkbox { text-align: center; }
+tbody tr:nth-child(even) { background: #f9f9f9; }
+
+td.diff-positive { color: var(--green); font-weight: bold; }
+td.diff-negative { color: #c0392b; font-weight: bold; }
+
+tfoot th, tfoot td {
+  background: var(--yellow);
+  font-weight: bold;
+}
+
+@media (min-width: 700px) {
+  body { max-width: 900px; margin: auto; }
+  .card { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .card h3, .card h4 { grid-column: span 2; }
+  button { width: auto; }
+}
+</style>
+</head>
+
+<body>
+
+<h2>Diesel vs EV – FIAC kalkula?ka</h2>
+
+<div class="card">
+  <h3>Vstupy</h3>
+  <label>Dátum <input type="date" id="date"></label>
+  <label>Km <input id="km" type="number"></label>
+</div>
+
+<div class="card">
+  <h4>Diesel</h4>
+  <label>Spotreba (l / 100 km) <input id="dieselCons" value="6.8"></label>
+  <label>Cena / l (€) <input id="dieselPrice" value="1.49"></label>
+</div>
+
+<div class="card">
+  <h4>EV</h4>
+  <label>Spotreba (kWh / 100 km) <input id="evCons" value="17"></label>
+  <label>Cena / kWh (€) <input id="evPrice" value="0.20"></label>
+</div>
+
+<button class="btn-primary" onclick="addTrip()">? Prida? jazdu</button>
+<button class="btn-export" onclick="exportExcel()">?? Export do Excelu</button>
+<button class="btn-danger" onclick="deleteSelected()">??? Vymaza? ozna?ené</button>
+<button class="btn-danger" onclick="resetTrips()">? Vymaza? všetko</button>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th></th><th>Dátum</th><th>Km</th><th>Diesel €</th><th>EV €</th><th>Rozdiel €</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+<tfoot>
+<tr>
+  <th></th><th>Spolu</th>
+  <th id="sumKm">0</th>
+  <th id="sumDiesel">0</th>
+  <th id="sumEV">0</th>
+  <th id="sumDiff">0</th>
+</tr>
+</tfoot>
+</table>
+</div>
+
+<script>
+let trips = JSON.parse(localStorage.getItem("trips")) || [];
+
+const kmInput = document.getElementById("km");
+const dieselCons = document.getElementById("dieselCons");
+const dieselPrice = document.getElementById("dieselPrice");
+const evCons = document.getElementById("evCons");
+const evPrice = document.getElementById("evPrice");
+const dateInput = document.getElementById("date");
+const rows = document.getElementById("rows");
+
+const sumKmEl = document.getElementById("sumKm");
+const sumDieselEl = document.getElementById("sumDiesel");
+const sumEVEl = document.getElementById("sumEV");
+const sumDiffEl = document.getElementById("sumDiff");
+
+dateInput.value = new Date().toISOString().slice(0,10);
+
+function render() {
+  rows.innerHTML = "";
+  let sumKm = 0, sumDiesel = 0, sumEV = 0;
+
+  trips.forEach((t,i)=>{
+    sumKm+=t.km; sumDiesel+=t.diesel; sumEV+=t.ev;
+    rows.innerHTML+=`
+      <tr>
+        <td class="checkbox"><input type="checkbox" data-index="${i}"></td>
+        <td>${t.date}</td>
+        <td>${t.km}</td>
+        <td>${t.diesel.toFixed(2)}</td>
+        <td>${t.ev.toFixed(2)}</td>
+        <td class="${t.diff>0?'diff-positive':'diff-negative'}">${t.diff.toFixed(2)}</td>
+      </tr>`;
+  });
+
+  sumKmEl.textContent=sumKm;
+  sumDieselEl.textContent=sumDiesel.toFixed(2);
+  sumEVEl.textContent=sumEV.toFixed(2);
+  sumDiffEl.textContent=(sumDiesel-sumEV).toFixed(2);
+
+  localStorage.setItem("trips",JSON.stringify(trips));
+}
+
+function addTrip(){
+  const km=Math.round(+kmInput.value);
+  if(!km) return alert("Zadaj po?et km");
+  const d=km*(dieselCons.value/100)*dieselPrice.value;
+  const e=km*(evCons.value/100)*evPrice.value;
+  trips.push({date:dateInput.value,km,diesel:d,ev:e,diff:d-e});
+  kmInput.value="";
+  render();
+}
+
+function resetTrips(){ if(confirm("Vymaza? všetko?")){trips=[];render();} }
+function deleteSelected(){
+  const c=[...document.querySelectorAll('input[type=checkbox]:checked')].map(x=>+x.dataset.index);
+  trips=trips.filter((_,i)=>!c.includes(i)); render();
+}
+
+function exportExcel(){
+  let csv="Datum;Km;Diesel;EV;Rozdiel\n";
+  trips.forEach(t=>csv+=`${t.date};${t.km};${t.diesel};${t.ev};${t.diff}\n`);
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="diesel_vs_ev.csv"; a.click();
+}
+render();
+</script>
+
+<!-- ===== PWA: Service Worker ===== -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
