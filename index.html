@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Diesel vs EV – FIAC kalkula?ka</title>
+<title>Diesel vs EV â€“ FIAC kalkulacka</title>
 
 <!-- ===== PWA ===== -->
 <link rel="manifest" href="manifest.json">
@@ -114,36 +114,36 @@ tfoot th, tfoot td {
 
 <body>
 
-<h2>Diesel vs EV – FIAC kalkula?ka</h2>
+<h2>Diesel vs EV â€“ FIAC kalkulacka</h2>
 
 <div class="card">
   <h3>Vstupy</h3>
-  <label>Dátum <input type="date" id="date"></label>
+  <label>Datum <input type="date" id="date"></label>
   <label>Km <input id="km" type="number"></label>
 </div>
 
 <div class="card">
   <h4>Diesel</h4>
   <label>Spotreba (l / 100 km) <input id="dieselCons" value="6.8"></label>
-  <label>Cena / l (€) <input id="dieselPrice" value="1.49"></label>
+  <label>Cena / l (euro) <input id="dieselPrice" value="1.49"></label>
 </div>
 
 <div class="card">
   <h4>EV</h4>
   <label>Spotreba (kWh / 100 km) <input id="evCons" value="17"></label>
-  <label>Cena / kWh (€) <input id="evPrice" value="0.20"></label>
+  <label>Cena / kWh (euro) <input id="evPrice" value="0.20"></label>
 </div>
 
-<button class="btn-primary" onclick="addTrip()">? Prida? jazdu</button>
-<button class="btn-export" onclick="exportExcel()">?? Export do Excelu</button>
-<button class="btn-danger" onclick="deleteSelected()">??? Vymaza? ozna?ené</button>
-<button class="btn-danger" onclick="resetTrips()">? Vymaza? všetko</button>
+<button class="btn-primary" onclick="addTrip()"> Pridat jazdu</button>
+<button class="btn-export" onclick="exportExcel()"> Export do Excelu</button>
+<button class="btn-danger" onclick="deleteSelected()"> Vymazat oznacene</button>
+<button class="btn-danger" onclick="resetTrips()"> Vymazat vsetko</button>
 
 <div class="table-wrap">
 <table>
 <thead>
 <tr>
-  <th></th><th>Dátum</th><th>Km</th><th>Diesel €</th><th>EV €</th><th>Rozdiel €</th>
+  <th></th><th>DÃ¡tum</th><th>Km</th><th>Diesel â‚¬</th><th>EV â‚¬</th><th>Rozdiel â‚¬</th>
 </tr>
 </thead>
 <tbody id="rows"></tbody>
@@ -204,7 +204,7 @@ function render() {
 
 function addTrip(){
   const km=Math.round(+kmInput.value);
-  if(!km) return alert("Zadaj po?et km");
+  if(!km) return alert("Zadaj pocet km");
   const d=km*(dieselCons.value/100)*dieselPrice.value;
   const e=km*(evCons.value/100)*evPrice.value;
   trips.push({date:dateInput.value,km,diesel:d,ev:e,diff:d-e});
@@ -212,7 +212,7 @@ function addTrip(){
   render();
 }
 
-function resetTrips(){ if(confirm("Vymaza? všetko?")){trips=[];render();} }
+function resetTrips(){ if(confirm("Vymazat vsetko")){trips=[];render();} }
 function deleteSelected(){
   const c=[...document.querySelectorAll('input[type=checkbox]:checked')].map(x=>+x.dataset.index);
   trips=trips.filter((_,i)=>!c.includes(i)); render();
@@ -236,4 +236,5 @@ if ("serviceWorker" in navigator) {
 </script>
 
 </body>
+
 </html>
